@@ -1,0 +1,437 @@
+const { Telegraf } = require('telegraf')
+require('dotenv').config()
+const nyumbuModel = require('./database/chats')
+const ugandanDb = require('./database/chats')
+const my_channels_db = require('./database/my_channels')
+const mkekadb = require('./database/mkeka')
+const vidb = require('./database/db')
+const mkekaMega = require('./database/mkeka-mega')
+const mongoose = require('mongoose')
+
+const bot = new Telegraf(process.env.BOT_TOKEN)
+    .catch((err) => console.log(err.message))
+
+mongoose.connect(`mongodb://${process.env.USER}:${process.env.PASS}@nodetuts-shard-00-00.ngo9k.mongodb.net:27017,nodetuts-shard-00-01.ngo9k.mongodb.net:27017,nodetuts-shard-00-02.ngo9k.mongodb.net:27017/ohmyNew?ssl=true&replicaSet=atlas-pyxyme-shard-0&authSource=admin&retryWrites=true&w=majority`)
+    .then(() => {
+        console.log('Connected to the database')
+    }).catch((err) => {
+        console.log(err)
+        bot.telegram.sendMessage(741815228, err.message)
+    })
+
+const imp = {
+    replyDb: -1001608248942,
+    pzone: -1001352114412,
+    prem_channel: -1001470139866,
+    local_domain: 't.me/rss_shemdoe_bot?start=',
+    prod_domain: 't.me/ohmychannelV2bot?start=',
+    shemdoe: 741815228,
+    halot: 1473393723,
+    sh1xbet: 5755271222,
+    xzone: -1001740624527,
+    ohmyDB: -1001586042518,
+    xbongo: -1001263624837,
+    mylove: -1001748858805
+}
+
+const gsb_ug = `https://track.africabetpartners.com/visit/?bta=35468&nci=5559`
+
+//delaying
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+
+bot.start(async ctx => {
+    try {
+        let payLoad = ctx.startPayload
+        let user = await ugandanDb.findOne({chatid: ctx.chat.id})
+
+        if(!user) {
+            await ugandanDb.create({chatid: ctx.chat.id, username: ctx.chat.first_name, blocked: false})
+            console.log('user created')
+        }
+
+        if (payLoad) {
+            if(payLoad == 'ug_whores') {
+                await bot.telegram.copyMessage(ctx.chat.id, imp.pzone, 7569)
+            }
+        }
+    } catch (err) {
+        console.log(err.message)
+    }
+
+})
+
+bot.command('/broadcast', async ctx => {
+    let myId = ctx.chat.id
+    let txt = ctx.message.text
+    let msg_id = Number(txt.split('/broadcast-')[1].trim())
+    if (myId == imp.shemdoe || myId == imp.halot) {
+        try {
+            let all_users = await ugandanDb.find()
+
+            all_users.forEach((u, index) => {
+                setTimeout(() => {
+                    if (index == all_users.length - 1) {
+                        ctx.reply('Nimemaliza kutuma offer')
+                    }
+                    bot.telegram.copyMessage(u.chatid, imp.pzone, msg_id, {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { text: '🎯 Register Now 🎯', url: gsb_ug }
+                                ]
+                            ]
+                        }
+                    })
+                        .then(() => console.log('Offer sent to ' + u.chatid))
+                        .catch((err) => {
+                            if (err.message.includes('blocked') || err.message.includes('initiate')) {
+                                ugandanDb.findOneAndDelete({ chatid: u.chatid })
+                                    .then(() => { console.log(u.chatid + ' is deleted') })
+                            }
+                        })
+                }, index * 40)
+            })
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
+})
+
+bot.command('/convo', async ctx => {
+    let myId = ctx.chat.id
+    let txt = ctx.message.text
+    let msg_id = Number(txt.split('/convo-')[1].trim())
+    if (myId == imp.shemdoe || myId == imp.halot) {
+        try {
+            let all_users = await ugandanDb.find()
+
+            all_users.forEach((u, index) => {
+                if (u.blocked != true) {
+                    setTimeout(() => {
+                        if (index == all_users.length - 1) {
+                            ctx.reply('Nimemaliza convo na ugandans')
+                        }
+                        bot.telegram.copyMessage(u.chatid, imp.pzone, msg_id)
+                            .then(() => console.log('convo sent to ' + u.chatid))
+                            .catch((err) => {
+                                if (err.message.includes('blocked') || err.message.includes('initiate')) {
+                                    ugandanDb.findOneAndDelete({ chatid: u.chatid })
+                                        .then(() => { console.log(u.chatid + ' is deleted') })
+                                }
+                            })
+                    }, index * 40)
+                }
+            })
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
+})
+
+bot.command('/slip', async ctx => {
+    try {
+        let nairobi = new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Nairobi' })
+        let keka = await mkekaMega.find({ date: nairobi })
+        let txt = `<b><u>🔥 Today's Sure Tips [ ${nairobi} ]</u></b>\n\n\n`
+        let odds = 1
+        if (keka) {
+            for (let m of keka) {
+                txt = txt + `<i>🕔 ${m.date},  ${m.time}</i>\n⚽️ ${m.match}\n<b>✅ ${m.bet.replace(/team/g, '').replace(/1 - /g, '1-').replace(/2 - /g, '2-')}</b> <i>@${m.odds}</i> \n\n\n`
+                odds = (odds * m.odds).toFixed(2)
+            }
+
+            let gsb = 'https://track.africabetpartners.com/visit/?bta=35468&nci=5377'
+
+            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\nYou can find these options at Gal Sport Uganda, if you have no account there,\n\n<b>👤 Register Now</b>\n<a href="${gsb}">https://m.gsb.ug/register\nhttps://m.gsb.ug/register</a>`
+
+            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true })
+        }
+    } catch (err) {
+        await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            .catch((e) => console.log(e.message))
+        console.log(err.message)
+    }
+
+})
+
+bot.command('/wakesho', async ctx => {
+    try {
+        let d = new Date()
+        d.setDate(d.getDate() + 1)
+        let nairobi = d.toLocaleDateString('en-GB', { timeZone: 'Africa/Nairobi' })
+        let keka = await mkekaMega.find({ date: nairobi })
+        let txt = `<b><u>🔥 Mkeka wa Kesho [ ${nairobi} ]</u></b>\n\n\n`
+        let odds = 1
+        if (keka) {
+            for (let m of keka) {
+                txt = txt + `<i>🕔 ${m.date},  ${m.time}</i>\n⚽️ ${m.match}\n<b>✅ ${m.bet.replace(/team/g, '').replace(/1 - /g, '1-').replace(/2 - /g, '2-')}</b> <i>@${m.odds}</i> \n\n\n`
+                odds = (odds * m.odds).toFixed(2)
+            }
+
+            let gsb = 'https://track.africabetpartners.com/visit/?bta=35468&nci=5377'
+
+            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\nOption hizi zinapatikana Gal Sport Betting pekee, kama bado huna account,\n\n<b>👤 Jisajili Hapa</b>\n<a href="${gsb}">https://m.gsb.co.tz/register\nhttps://m.gsb.co.tz/register</a>\n\n<u>Msaada </u>\nmsaada wa kuzielewa hizi option bonyeza <b>/maelezo</b>`
+
+            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true })
+        }
+    } catch (err) {
+        await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            .catch((e) => console.log(e.message))
+        console.log(err.message)
+    }
+
+})
+
+bot.command('/sll', async ctx => {
+    await ugandanDb.updateMany({}, { $set: { blocked: false } })
+    ctx.reply('Updated')
+})
+
+bot.command('copy', async ctx => {
+    try {
+        if (ctx.message.reply_to_message) {
+            let userid = ctx.message.reply_to_message.text
+            userid = Number(userid.split('id = ')[1].split('&mid')[0].trim())
+
+            let pid = ctx.message.text
+            pid = Number(pid.split(' ')[1])
+
+            await bot.telegram.copyMessage(userid, imp.pzone, pid)
+            await ctx.reply(`msg with id ${pid} was copied successfully to user with id ${userid}`)
+        }
+    } catch (err) {
+        console.log(err)
+        await ctx.reply(err.message).catch(e => console.log(e.message))
+    }
+})
+
+bot.command('/post_to_channels', async ctx => {
+    let txt = ctx.message.text
+    let ch_link = 'http://t.me/cute_edithabot?start=ug_whores'
+    let keyb = [
+        [{ text: "❌❌ UGANDAN ESCORTS | Everywhere ❤️", url: ch_link },],
+        [{ text: "🔥 Sexy Calls 🔞", url: ch_link },],
+        [{ text: "🍑🍑 SUGAR MUMMIES 💋", url: ch_link },],
+        [{ text: "🔞 UGANDAN XXX VIDEOS ❌❌❌", url: ch_link },],
+        [{ text: "🔥🔥 KAMPALA HOT GIRLS 🔞", url: ch_link }]
+    ]
+
+    let mid = Number(txt.split('post_to_channels=')[1])
+
+    let channels = await my_channels_db.find()
+
+    for (ch of channels) {
+        await bot.telegram.copyMessage(ch.ch_id, imp.pzone, mid, {
+            disable_notification: true,
+            reply_markup: {
+                inline_keyboard: keyb
+            }
+        })
+    }
+})
+
+bot.on('channel_post', async ctx => {
+    let txt = ctx.channelPost.text
+    let txtid = ctx.channelPost.message_id
+
+    try {
+        if (ctx.channelPost.text) {
+            if (txt.toLowerCase().includes('add me')) {
+                let ch_id = ctx.channelPost.sender_chat.id
+                let ch_title = ctx.channelPost.sender_chat.title
+
+                let check_ch = await my_channels_db.findOne({ ch_id })
+                if (!check_ch) {
+                    await my_channels_db.create({ ch_id, ch_title })
+                    let uj = await ctx.reply('channel added to db')
+                    await bot.telegram.deleteMessage(ch_id, txtid)
+                    setTimeout(() => {
+                        bot.telegram.deleteMessage(ch_id, uj.message_id)
+                            .catch((err) => console.log(err))
+                    }, 1000)
+                } else {
+                    let already = await ctx.reply('Channel Already existed')
+                    setTimeout(() => {
+                        bot.telegram.deleteMessage(ch_id, already.message_id)
+                            .catch((err) => console.log(err))
+                    }, 1000)
+                }
+            }
+        }
+
+        if (ctx.channelPost.reply_to_message && ctx.channelPost.chat.id == imp.pzone) {
+            let rp_id = ctx.channelPost.reply_to_message.message_id
+            let rp_msg = ctx.channelPost.reply_to_message.text
+
+            if (txt.toLowerCase() == 'post gal') {
+                await mkekadb.create({ mid: rp_id, brand: 'gal' })
+                await ctx.reply('Mkeka uko live Gal Sport')
+            } else if (txt.toLowerCase() == 'post 10bet') {
+                await mkekadb.create({ mid: rp_id, brand: '10bet' })
+                await ctx.reply('Mkeka uko live 10bet')
+            }
+        }
+
+    } catch (err) {
+        console.log(err)
+        if (!err.message) {
+            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+        } else {
+            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+        }
+    }
+})
+
+bot.command('p_videos', async ctx => {
+    try {
+        let idadi = await vidb.countDocuments()
+        let rand = Math.floor(Math.random() * idadi)
+        let vid = await vidb.findOne().skip(rand)
+        await bot.telegram.copyMessage(ctx.chat.id, imp.ohmyDB, vid.msgId, {
+            protect_content: true
+        })
+    } catch (err) {
+        console.log(err.message)
+    }
+})
+
+bot.on('text', async ctx => {
+    try {
+        if (ctx.message.reply_to_message && ctx.chat.id == imp.halot) {
+            if (ctx.message.reply_to_message.text) {
+                let my_msg = ctx.message.text
+                let myid = ctx.chat.id
+                let my_msg_id = ctx.message.message_id
+                let umsg = ctx.message.reply_to_message.text
+                let ids = umsg.split('id = ')[1].trim()
+                let userid = Number(ids.split('&mid=')[0])
+                let mid = Number(ids.split('&mid=')[1])
+
+                if (my_msg == 'block 666') {
+                    await ugandanDb.findOneAndUpdate({ chatid: userid }, { blocked: true })
+                    await ctx.reply(userid + ' blocked for mass massaging')
+                }
+
+                else if (my_msg == 'unblock 666') {
+                    await ugandanDb.findOneAndUpdate({ chatid: userid }, { blocked: false })
+                    await ctx.reply(userid + ' unblocked for mass massaging')
+                }
+
+                else {
+                    await bot.telegram.copyMessage(userid, myid, my_msg_id, { reply_to_message_id: mid })
+                }
+
+            }
+
+            else if (ctx.message.reply_to_message.photo) {
+                let my_msg = ctx.message.text
+                let umsg = ctx.message.reply_to_message.caption
+                let ids = umsg.split('id = ')[1].trim()
+                let userid = Number(ids.split('&mid=')[0])
+                let mid = Number(ids.split('&mid=')[1])
+
+
+                await bot.telegram.sendMessage(userid, my_msg, { reply_to_message_id: mid })
+            }
+        }
+
+
+        else {
+            let userid = ctx.chat.id
+            let txt = ctx.message.text
+            let username = ctx.chat.first_name
+            let mid = ctx.message.message_id
+
+            await bot.telegram.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
+        }
+
+    } catch (err) {
+        if (!err.message) {
+            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+        } else {
+            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+        }
+    }
+})
+
+bot.on('photo', async ctx => {
+    try {
+        let mid = ctx.message.message_id
+        let username = ctx.chat.first_name
+        let chatid = ctx.chat.id
+        let cap = ctx.message.caption
+
+        if (ctx.message.reply_to_message && chatid == imp.halot) {
+            if (ctx.message.reply_to_message.text) {
+                let umsg = ctx.message.reply_to_message.text
+                let ids = umsg.split('id = ')[1].trim()
+                let userid = Number(ids.split('&mid=')[0])
+                let rmid = Number(ids.split('&mid=')[1])
+
+
+                await bot.telegram.copyMessage(userid, chatid, mid, {
+                    reply_to_message_id: rmid
+                })
+            }
+
+            else if (ctx.message.reply_to_message.photo) {
+                let umsg = ctx.message.reply_to_message.caption
+                let ids = umsg.split('id = ')[1].trim()
+                let userid = Number(ids.split('&mid=')[0])
+                let rmid = Number(ids.split('&mid=')[1])
+
+
+                await bot.telegram.copyMessage(userid, chatid, mid, {
+                    reply_to_message_id: rmid
+                })
+            }
+        }
+
+
+        else {
+            await bot.telegram.copyMessage(imp.halot, chatid, mid, {
+                caption: cap + `\n\nfrom = <code>${username}</code>\nid = <code>${chatid}</code>&mid=${mid}`,
+                parse_mode: 'HTML'
+            })
+        }
+    } catch (err) {
+        if (!err.message) {
+            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+            console.log(err)
+        } else {
+            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            console.log(err)
+        }
+    }
+})
+
+
+bot.launch()
+    .then((console.log('Bot is running')))
+    .catch((err) => {
+        console.log('Bot is not running')
+        bot.telegram.sendMessage(imp.shemdoe, err.message)
+    })
+
+
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
+process.on('unhandledRejection', (reason, promise) => {
+    bot.telegram.sendMessage(imp.shemdoe, reason + ' It is an unhandled rejection.')
+    console.log(reason)
+    //on production here process will change from crash to start cools
+})
+
+//caught any exception
+process.on('uncaughtException', (err) => {
+    console.log(err)
+    bot.telegram.sendMessage(741815228, err.message + ' - It is ana uncaught exception.')
+        .catch((err) => {
+            console.log(err.message + ' while sending you')
+            process.exit()
+        })
+})
