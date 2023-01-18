@@ -2,11 +2,19 @@ const { Telegraf } = require('telegraf')
 require('dotenv').config()
 const nyumbuModel = require('./database/chats')
 const ugandanDb = require('./database/chats')
+const kenyanDb = require('./database/kenyanDb')
 const my_channels_db = require('./database/my_channels')
+const kenyan_channels_db = require('./database/kenyanChannels')
 const mkekadb = require('./database/mkeka')
 const vidb = require('./database/db')
 const mkekaMega = require('./database/mkeka-mega')
 const mongoose = require('mongoose')
+
+//functions
+const convos = require('./functions/convo')
+const statsFn = require('./functions/stats')
+const startFn = require('./functions/start')
+const postToChannelsFn = require('./functions/post_to_channels')
 
 const bot = new Telegraf(process.env.BOT_TOKEN)
     .catch((err) => console.log(err.message))
@@ -35,101 +43,23 @@ const imp = {
 }
 
 const gsb_ug = `https://track.africabetpartners.com/visit/?bta=35468&nci=5559`
+const btwy_ke = `https://www.betway.co.ke/?btag=P94949-PR23061-CM60798-TS1971458&`
+const btwy_tz = `https://www.betway.co.tz/?btag=P94949-PR26073-CM84774-TS1971458&`
 
 //delaying
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+//start function
+startFn(bot, ugandanDb, kenyanDb, imp)
 
-bot.start(async ctx => {
-    try {
-        let payLoad = ctx.startPayload
-        let user = await ugandanDb.findOne({chatid: ctx.chat.id})
+//making convons
+convos(imp, kenyanDb, ugandanDb, bot)
 
-        if(!user) {
-            await ugandanDb.create({chatid: ctx.chat.id, username: ctx.chat.first_name, blocked: false})
-            console.log('user created')
-        }
+//checking stats
+statsFn(bot, ugandanDb, kenyanDb)
 
-        if (payLoad) {
-            if(payLoad == 'ug_whores') {
-                await bot.telegram.copyMessage(ctx.chat.id, imp.pzone, 7569)
-            }
-        }
-    } catch (err) {
-        console.log(err.message)
-    }
-
-})
-
-bot.command('/broadcast', async ctx => {
-    let myId = ctx.chat.id
-    let txt = ctx.message.text
-    let msg_id = Number(txt.split('/broadcast-')[1].trim())
-    if (myId == imp.shemdoe || myId == imp.halot) {
-        try {
-            let all_users = await ugandanDb.find()
-
-            all_users.forEach((u, index) => {
-                setTimeout(() => {
-                    if (index == all_users.length - 1) {
-                        ctx.reply('Nimemaliza kutuma offer')
-                    }
-                    bot.telegram.copyMessage(u.chatid, imp.pzone, msg_id, {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    { text: '🎯 Register Now 🎯', url: gsb_ug }
-                                ]
-                            ]
-                        }
-                    })
-                        .then(() => console.log('Offer sent to ' + u.chatid))
-                        .catch((err) => {
-                            if (err.message.includes('blocked') || err.message.includes('initiate')) {
-                                ugandanDb.findOneAndDelete({ chatid: u.chatid })
-                                    .then(() => { console.log(u.chatid + ' is deleted') })
-                            }
-                        })
-                }, index * 40)
-            })
-        } catch (err) {
-            console.log(err.message)
-        }
-    }
-
-})
-
-bot.command('/convo', async ctx => {
-    let myId = ctx.chat.id
-    let txt = ctx.message.text
-    let msg_id = Number(txt.split('/convo-')[1].trim())
-    if (myId == imp.shemdoe || myId == imp.halot) {
-        try {
-            let all_users = await ugandanDb.find()
-
-            all_users.forEach((u, index) => {
-                if (u.blocked != true) {
-                    setTimeout(() => {
-                        if (index == all_users.length - 1) {
-                            ctx.reply('Nimemaliza convo na ugandans')
-                        }
-                        bot.telegram.copyMessage(u.chatid, imp.pzone, msg_id)
-                            .then(() => console.log('convo sent to ' + u.chatid))
-                            .catch((err) => {
-                                if (err.message.includes('blocked') || err.message.includes('initiate')) {
-                                    ugandanDb.findOneAndDelete({ chatid: u.chatid })
-                                        .then(() => { console.log(u.chatid + ' is deleted') })
-                                }
-                            })
-                    }, index * 40)
-                }
-            })
-        } catch (err) {
-            console.log(err.message)
-        }
-    }
-
-})
+//post to channels UG & KE
+postToChannelsFn(my_channels_db, kenyan_channels_db, bot, imp)
 
 bot.command('/slip', async ctx => {
     try {
@@ -208,44 +138,40 @@ bot.command('copy', async ctx => {
     }
 })
 
-bot.command('/post_to_channels', async ctx => {
-    let txt = ctx.message.text
-    let ch_link = 'http://t.me/cute_edithabot?start=ug_whores'
-    let keyb = [
-        [{ text: "❌❌ UGANDAN ESCORTS | Everywhere ❤️", url: ch_link },],
-        [{ text: "🔥 Sexy Calls 🔞", url: ch_link },],
-        [{ text: "🍑🍑 SUGAR MUMMIES 💋", url: ch_link },],
-        [{ text: "🔞 UGANDAN XXX VIDEOS ❌❌❌", url: ch_link },],
-        [{ text: "🔥🔥 KAMPALA HOT GIRLS 🔞", url: ch_link }]
-    ]
-
-    let mid = Number(txt.split('post_to_channels=')[1])
-
-    let channels = await my_channels_db.find()
-
-    for (ch of channels) {
-        await bot.telegram.copyMessage(ch.ch_id, imp.pzone, mid, {
-            disable_notification: true,
-            reply_markup: {
-                inline_keyboard: keyb
-            }
-        })
-    }
-})
-
 bot.on('channel_post', async ctx => {
     let txt = ctx.channelPost.text
     let txtid = ctx.channelPost.message_id
 
     try {
         if (ctx.channelPost.text) {
-            if (txt.toLowerCase().includes('add me')) {
+            if (txt.toLowerCase().includes('add me ug')) {
                 let ch_id = ctx.channelPost.sender_chat.id
                 let ch_title = ctx.channelPost.sender_chat.title
 
                 let check_ch = await my_channels_db.findOne({ ch_id })
                 if (!check_ch) {
                     await my_channels_db.create({ ch_id, ch_title })
+                    let uj = await ctx.reply('channel added to db')
+                    await bot.telegram.deleteMessage(ch_id, txtid)
+                    setTimeout(() => {
+                        bot.telegram.deleteMessage(ch_id, uj.message_id)
+                            .catch((err) => console.log(err))
+                    }, 1000)
+                } else {
+                    let already = await ctx.reply('Channel Already existed')
+                    setTimeout(() => {
+                        bot.telegram.deleteMessage(ch_id, already.message_id)
+                            .catch((err) => console.log(err))
+                    }, 1000)
+                }
+            }
+            else if (txt.toLowerCase().includes('add me ke')) {
+                let ch_id = ctx.channelPost.sender_chat.id
+                let ch_title = ctx.channelPost.sender_chat.title
+
+                let check_ch = await kenyan_channels_db.findOne({ ch_id })
+                if (!check_ch) {
+                    await kenyan_channels_db.create({ ch_id, ch_title })
                     let uj = await ctx.reply('channel added to db')
                     await bot.telegram.deleteMessage(ch_id, txtid)
                     setTimeout(() => {
