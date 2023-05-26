@@ -23,7 +23,7 @@ const post_to_channels = (my_channels_db, keChannels, bot, imp) => {
                 reply_markup: {
                     inline_keyboard: keyb
                 }
-            })
+            }).catch(e=> console.log(e.message))
         }
     })
 
@@ -49,7 +49,7 @@ const post_to_channels = (my_channels_db, keChannels, bot, imp) => {
                 reply_markup: {
                     inline_keyboard: keyb
                 }
-            })
+            }).catch(e=> console.log(e.message))
         }
     })
 }
