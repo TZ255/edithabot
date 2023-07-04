@@ -21,7 +21,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 
 mongoose.connect(`mongodb://${process.env.USER}:${process.env.PASS}@nodetuts-shard-00-00.ngo9k.mongodb.net:27017,nodetuts-shard-00-01.ngo9k.mongodb.net:27017,nodetuts-shard-00-02.ngo9k.mongodb.net:27017/ohmyNew?ssl=true&replicaSet=atlas-pyxyme-shard-0&authSource=admin&retryWrites=true&w=majority`)
     .then(() => {
-        console.log('Connected to the database')
+        console.log('Connected to OhMyNew database')
     }).catch((err) => {
         console.log(err)
         bot.telegram.sendMessage(741815228, err.message)
@@ -361,3 +361,11 @@ process.on('uncaughtException', (err) => {
             process.exit()
         })
 })
+
+const http = require('http')
+const server = http.createServer((req, res)=> {
+    res.writeHead(200, {"Content-Type": "text/plain"})
+    res.end('Karibu edithabot')
+})
+
+server.listen(process.env.PORT || 3000, ()=> console.log('Listen to port 3000'))
