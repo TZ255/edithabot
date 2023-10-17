@@ -5,9 +5,7 @@ const sendMkeka3 = async (ctx, delay, bot, imp) => {
     let defaultReplyMkp = {
         keyboard: [
             [
-                { text: "🔥 MKEKA #1" },
-                { text: "💰 MKEKA #2" },
-                { text: "🤑 MKEKA #3" },
+                { text: "💰 BET OF THE DAY (🔥)" }
             ]
         ],
         is_persistent: true,

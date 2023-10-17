@@ -87,6 +87,15 @@ bot.command('copy', async ctx => {
     }
 })
 
+bot.command('slip', async ctx => {
+    try {
+        await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
+    } catch (err) {
+        console.log(err)
+        await ctx.reply(err.message).catch(e => console.log(e.message))
+    }
+})
+
 bot.on('channel_post', async ctx => {
     let txt = ctx.channelPost.text
     let txtid = ctx.channelPost.message_id
