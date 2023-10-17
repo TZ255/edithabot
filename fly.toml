@@ -1,0 +1,12 @@
+# fly.toml file generated for edithabot on 2023-05-24T04:16:47+03:00
+
+app = "edithabot"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[env]
+  PORT = ""

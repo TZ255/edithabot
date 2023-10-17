@@ -14,6 +14,7 @@ const mongoose = require('mongoose')
 const convos = require('./functions/convo')
 const statsFn = require('./functions/stats')
 const startFn = require('./functions/start')
+const mkekaFn = require('./functions/mkeka')
 const postToChannelsFn = require('./functions/post_to_channels')
 
 const bot = new Telegraf(process.env.BOT_TOKEN)
@@ -39,7 +40,9 @@ const imp = {
     xzone: -1001740624527,
     ohmyDB: -1001586042518,
     xbongo: -1001263624837,
-    mylove: -1001748858805
+    mylove: -1001748858805,
+    mikekaDB: -1001696592315,
+    matangazoDB: -1001570087172
 }
 
 const gsb_ug = `https://track.africabetpartners.com/visit/?bta=35468&nci=5559`
@@ -60,60 +63,6 @@ statsFn(bot, ugandanDb, kenyanDb)
 
 //post to channels UG & KE
 postToChannelsFn(my_channels_db, kenyan_channels_db, bot, imp)
-
-bot.command('/slip', async ctx => {
-    try {
-        let nairobi = new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Nairobi' })
-        let keka = await mkekaMega.find({ date: nairobi })
-        let txt = `<b><u>🔥 Today's Sure Tips [ ${nairobi} ]</u></b>\n\n\n`
-        let odds = 1
-        if (keka) {
-            for (let m of keka) {
-                txt = txt + `<i>🕔 ${m.date},  ${m.time}</i>\n⚽️ ${m.match}\n<b>✅ ${m.bet.replace(/team/g, '').replace(/1 - /g, '1-').replace(/2 - /g, '2-')}</b> <i>@${m.odds}</i> \n\n\n`
-                odds = (odds * m.odds).toFixed(2)
-            }
-
-            let gsb = 'https://track.africabetpartners.com/visit/?bta=35468&nci=5377'
-
-            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\nYou can find these options at Gal Sport Uganda, if you have no account there,\n\n<b>👤 Register Now</b>\n<a href="${gsb}">https://m.gsb.ug/register\nhttps://m.gsb.ug/register</a>`
-
-            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true })
-        }
-    } catch (err) {
-        await bot.telegram.sendMessage(imp.shemdoe, err.message)
-            .catch((e) => console.log(e.message))
-        console.log(err.message)
-    }
-
-})
-
-bot.command('/wakesho', async ctx => {
-    try {
-        let d = new Date()
-        d.setDate(d.getDate() + 1)
-        let nairobi = d.toLocaleDateString('en-GB', { timeZone: 'Africa/Nairobi' })
-        let keka = await mkekaMega.find({ date: nairobi })
-        let txt = `<b><u>🔥 Mkeka wa Kesho [ ${nairobi} ]</u></b>\n\n\n`
-        let odds = 1
-        if (keka) {
-            for (let m of keka) {
-                txt = txt + `<i>🕔 ${m.date},  ${m.time}</i>\n⚽️ ${m.match}\n<b>✅ ${m.bet.replace(/team/g, '').replace(/1 - /g, '1-').replace(/2 - /g, '2-')}</b> <i>@${m.odds}</i> \n\n\n`
-                odds = (odds * m.odds).toFixed(2)
-            }
-
-            let gsb = 'https://track.africabetpartners.com/visit/?bta=35468&nci=5377'
-
-            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\nOption hizi zinapatikana Gal Sport Betting pekee, kama bado huna account,\n\n<b>👤 Jisajili Hapa</b>\n<a href="${gsb}">https://m.gsb.co.tz/register\nhttps://m.gsb.co.tz/register</a>\n\n<u>Msaada </u>\nmsaada wa kuzielewa hizi option bonyeza <b>/maelezo</b>`
-
-            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true })
-        }
-    } catch (err) {
-        await bot.telegram.sendMessage(imp.shemdoe, err.message)
-            .catch((e) => console.log(e.message))
-        console.log(err.message)
-    }
-
-})
 
 bot.command('/sll', async ctx => {
     await ugandanDb.updateMany({}, { $set: { blocked: false } })
@@ -213,12 +162,7 @@ bot.on('channel_post', async ctx => {
 
 bot.command('p_videos', async ctx => {
     try {
-        let idadi = await vidb.countDocuments()
-        let rand = Math.floor(Math.random() * idadi)
-        let vid = await vidb.findOne().skip(rand)
-        await bot.telegram.copyMessage(ctx.chat.id, imp.ohmyDB, vid.msgId, {
-            protect_content: true
-        })
+        await bot.telegram.copyMessage(ctx.chat.id, imp.matangazoDB, 74)
     } catch (err) {
         console.log(err.message)
     }
@@ -271,7 +215,12 @@ bot.on('text', async ctx => {
             let username = ctx.chat.first_name
             let mid = ctx.message.message_id
 
-            await bot.telegram.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
+            if (txt == '💰 BET OF THE DAY (🔥)') {
+                await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
+            }
+            else {
+                await bot.telegram.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
+            }
         }
 
     } catch (err) {
@@ -355,17 +304,9 @@ process.on('unhandledRejection', (reason, promise) => {
 //caught any exception
 process.on('uncaughtException', (err) => {
     console.log(err)
-    bot.telegram.sendMessage(741815228, err.message + ' - It is ana uncaught exception.')
+    bot.telegram.sendMessage(741815228, err.message + ' - It is uncaught exception.')
         .catch((err) => {
             console.log(err.message + ' while sending you')
             process.exit()
         })
 })
-
-const http = require('http')
-const server = http.createServer((req, res)=> {
-    res.writeHead(200, {"Content-Type": "text/plain"})
-    res.end('Karibu edithabot')
-})
-
-server.listen(process.env.PORT || 3000, ()=> console.log('Listen to port 3000'))
