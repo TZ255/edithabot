@@ -29,7 +29,7 @@ const startFn = (bot, ugandanDb, kenyanDb, imp) => {
                     await bot.telegram.copyMessage(ctx.chat.id, imp.pzone, 7589, {reply_markup: defaultReplyMkp})
                 }
             } else {
-                await ctx.reply(`Welcome ${ctx.chat.first_name}\n\nTo get bet of the day click this command /slip`, {
+                await ctx.reply(`Welcome ${ctx.chat.first_name}\n\nTo get the best bet of the day click this command /betslip`, {
                     reply_markup: defaultReplyMkp
                 })
             }
