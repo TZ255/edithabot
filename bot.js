@@ -87,7 +87,7 @@ bot.command('copy', async ctx => {
     }
 })
 
-bot.command('slip', async ctx => {
+bot.command(['slip', 'betslip', 'mkeka'], async ctx => {
     try {
         await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
     } catch (err) {

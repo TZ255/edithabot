@@ -1,12 +1,20 @@
-# fly.toml file generated for edithabot on 2023-05-24T04:16:47+03:00
+# fly.toml app configuration file generated for edithabot on 2024-01-13T06:34:45+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = "edithabot"
+primary_region = "jnb"
 kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
+kill_timeout = "5s"
 
 [build]
   builder = "heroku/buildpacks:20"
 
 [env]
   PORT = ""
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

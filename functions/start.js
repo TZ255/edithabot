@@ -8,7 +8,7 @@ const startFn = (bot, ugandanDb, kenyanDb, imp) => {
             resize_keyboard: true
         }
         try {
-            let payLoad = ctx.startPayload
+            let payLoad = ctx.payload
 
             if (payLoad) {
                 if (payLoad == 'ug_whores') {
