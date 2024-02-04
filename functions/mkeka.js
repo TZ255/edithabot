@@ -25,15 +25,11 @@ const sendMkeka3 = async (ctx, delay, bot, imp) => {
                 odds = (odds * m.odds).toFixed(2)
             }
 
-            let bwTZ = `https://mkekawaleo.com/betway-tz/register`
-            let gsb = 'https://mkekawaleo.com/gsb-tz/register'
-            let pm = `https://pmaff.com/?serial=61291818&creative_id=1788`
-            let ke = `https://mkekawaleo.com/22bet/register`
-            let ug = `https://mkekawaleo.com/22bet/register`
-            let t22 = `https://mkekawaleo.com/22bet-tz/register`
-            let prm = `https://mkekawaleo.com/premierbet/register`
+            let btw = 'http://bet-link.top/betway/register'
+            let ke = `http://bet-link.top/22bet/register`
+            let ug = `http://bet-link.top/22bet/register`
 
-            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\n▬▬▬▬▬▬▬▬▬▬▬▬\n\nThese bet options are available at <b>22bet</b> with a 200% bonus on your 1st deposit\n\n<b>✓ Register Now \n\n👤 (Kenya 🇰🇪)\n<a href="${ke}">https://22bet.co.ke/register\nhttps://22bet.co.ke/register</a>\n\n👤 (Uganda 🇺🇬)\n<a href="${ug}">https://22bet.ug/register</a>\n\n👤 (Tanzania 🇹🇿)\n<a href="${gsb}">https://22bet.co.tz/register</a>\n\n\n\n#WinWithEditha</b>`
+            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\n▬▬▬▬▬▬▬▬▬▬▬▬\n\nThese bet options are available at <b>22bet</b> with a 200% bonus on your 1st deposit\n\n<b>✓ You Can Register Below \n\n👤 (Kenya 🇰🇪)\n<a href="${ke}">https://22bet.co.ke/register\nhttps://22bet.co.ke/register</a>\n\n👤 (Uganda 🇺🇬)\n<a href="${ug}">https://22bet.co.ug/register</a>\n\n👤 (Tanzania 🇹🇿)\n<a href="${btw}">https://22bet.co.tz/register</a>\n\n\n\n#WinWithEditha</b>`
 
             await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: defaultReplyMkp })
         } else {
