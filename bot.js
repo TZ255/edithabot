@@ -1,4 +1,5 @@
-const { Telegraf } = require('telegraf')
+const { Bot } = require('grammy')
+const { autoRetry } = require("@grammyjs/auto-retry");
 require('dotenv').config()
 const nyumbuModel = require('./database/chats')
 const ugandanDb = require('./database/chats')
@@ -17,15 +18,14 @@ const startFn = require('./functions/start')
 const mkekaFn = require('./functions/mkeka')
 const postToChannelsFn = require('./functions/post_to_channels')
 
-const bot = new Telegraf(process.env.BOT_TOKEN)
-    .catch((err) => console.log(err.message))
+const bot = new Bot(process.env.BOT_TOKEN)
 
 mongoose.connect(`mongodb://${process.env.USER}:${process.env.PASS}@nodetuts-shard-00-00.ngo9k.mongodb.net:27017,nodetuts-shard-00-01.ngo9k.mongodb.net:27017,nodetuts-shard-00-02.ngo9k.mongodb.net:27017/ohmyNew?ssl=true&replicaSet=atlas-pyxyme-shard-0&authSource=admin&retryWrites=true&w=majority`)
     .then(() => {
         console.log('Connected to OhMyNew database')
     }).catch((err) => {
         console.log(err)
-        bot.telegram.sendMessage(741815228, err.message)
+        bot.api.sendMessage(741815228, err.message)
     })
 
 const imp = {
@@ -52,6 +52,14 @@ const btwy_tz = `https://www.betway.co.tz/?btag=P94949-PR26073-CM84774-TS1971458
 //delaying
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+bot.catch((err) => {
+    const ctx = err.ctx;
+    console.error(`(Dayo): ${err.message}`, err);
+});
+
+//use auto-retry
+bot.api.config.use(autoRetry());
+
 //start function
 startFn(bot, ugandanDb, kenyanDb, imp)
 
@@ -64,7 +72,7 @@ statsFn(bot, ugandanDb, kenyanDb)
 //post to channels UG & KE
 postToChannelsFn(my_channels_db, kenyan_channels_db, bot, imp)
 
-bot.command('/sll', async ctx => {
+bot.command('sll', async ctx => {
     await ugandanDb.updateMany({}, { $set: { blocked: false } })
     ctx.reply('Updated')
 })
@@ -78,7 +86,7 @@ bot.command('copy', async ctx => {
             let pid = ctx.message.text
             pid = Number(pid.split(' ')[1])
 
-            await bot.telegram.copyMessage(userid, imp.pzone, pid)
+            await bot.api.copyMessage(userid, imp.pzone, pid)
             await ctx.reply(`msg with id ${pid} was copied successfully to user with id ${userid}`)
         }
     } catch (err) {
@@ -110,15 +118,15 @@ bot.on('channel_post', async ctx => {
                 if (!check_ch) {
                     await my_channels_db.create({ ch_id, ch_title })
                     let uj = await ctx.reply('channel added to db')
-                    await bot.telegram.deleteMessage(ch_id, txtid)
+                    await bot.api.deleteMessage(ch_id, txtid)
                     setTimeout(() => {
-                        bot.telegram.deleteMessage(ch_id, uj.message_id)
+                        bot.api.deleteMessage(ch_id, uj.message_id)
                             .catch((err) => console.log(err))
                     }, 1000)
                 } else {
                     let already = await ctx.reply('Channel Already existed')
                     setTimeout(() => {
-                        bot.telegram.deleteMessage(ch_id, already.message_id)
+                        bot.api.deleteMessage(ch_id, already.message_id)
                             .catch((err) => console.log(err))
                     }, 1000)
                 }
@@ -131,15 +139,15 @@ bot.on('channel_post', async ctx => {
                 if (!check_ch) {
                     await kenyan_channels_db.create({ ch_id, ch_title })
                     let uj = await ctx.reply('channel added to db')
-                    await bot.telegram.deleteMessage(ch_id, txtid)
+                    await bot.api.deleteMessage(ch_id, txtid)
                     setTimeout(() => {
-                        bot.telegram.deleteMessage(ch_id, uj.message_id)
+                        bot.api.deleteMessage(ch_id, uj.message_id)
                             .catch((err) => console.log(err))
                     }, 1000)
                 } else {
                     let already = await ctx.reply('Channel Already existed')
                     setTimeout(() => {
-                        bot.telegram.deleteMessage(ch_id, already.message_id)
+                        bot.api.deleteMessage(ch_id, already.message_id)
                             .catch((err) => console.log(err))
                     }, 1000)
                 }
@@ -162,22 +170,31 @@ bot.on('channel_post', async ctx => {
     } catch (err) {
         console.log(err)
         if (!err.message) {
-            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+            await bot.api.sendMessage(imp.shemdoe, err.description)
         } else {
-            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            await bot.api.sendMessage(imp.shemdoe, err.message)
         }
     }
 })
 
 bot.command('p_videos', async ctx => {
     try {
-        await bot.telegram.copyMessage(ctx.chat.id, imp.matangazoDB, 74)
+        await bot.api.copyMessage(ctx.chat.id, imp.matangazoDB, 74)
     } catch (err) {
         console.log(err.message)
     }
 })
 
-bot.on('text', async ctx => {
+bot.callbackQuery(['money', 'pussy'], async ctx=> {
+    try {
+        await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
+    } catch (error) {
+        await ctx.reply(error.message)
+        console.log(error.message, error)
+    }
+})
+
+bot.on(':text', async ctx => {
     try {
         if (ctx.message.reply_to_message && ctx.chat.id == imp.halot) {
             if (ctx.message.reply_to_message.text) {
@@ -200,7 +217,7 @@ bot.on('text', async ctx => {
                 }
 
                 else {
-                    await bot.telegram.copyMessage(userid, myid, my_msg_id, { reply_to_message_id: mid })
+                    await bot.api.copyMessage(userid, myid, my_msg_id, { reply_to_message_id: mid })
                 }
 
             }
@@ -213,7 +230,7 @@ bot.on('text', async ctx => {
                 let mid = Number(ids.split('&mid=')[1])
 
 
-                await bot.telegram.sendMessage(userid, my_msg, { reply_to_message_id: mid })
+                await bot.api.sendMessage(userid, my_msg, { reply_to_message_id: mid })
             }
         }
 
@@ -228,20 +245,20 @@ bot.on('text', async ctx => {
                 await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
             }
             else {
-                await bot.telegram.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
+                await bot.api.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
             }
         }
 
     } catch (err) {
         if (!err.message) {
-            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+            await bot.api.sendMessage(imp.shemdoe, err.description)
         } else {
-            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            await bot.api.sendMessage(imp.shemdoe, err.message)
         }
     }
 })
 
-bot.on('photo', async ctx => {
+bot.on(':photo', async ctx => {
     try {
         let mid = ctx.message.message_id
         let username = ctx.chat.first_name
@@ -256,7 +273,7 @@ bot.on('photo', async ctx => {
                 let rmid = Number(ids.split('&mid=')[1])
 
 
-                await bot.telegram.copyMessage(userid, chatid, mid, {
+                await bot.api.copyMessage(userid, chatid, mid, {
                     reply_to_message_id: rmid
                 })
             }
@@ -268,7 +285,7 @@ bot.on('photo', async ctx => {
                 let rmid = Number(ids.split('&mid=')[1])
 
 
-                await bot.telegram.copyMessage(userid, chatid, mid, {
+                await bot.api.copyMessage(userid, chatid, mid, {
                     reply_to_message_id: rmid
                 })
             }
@@ -276,36 +293,35 @@ bot.on('photo', async ctx => {
 
 
         else {
-            await bot.telegram.copyMessage(imp.halot, chatid, mid, {
+            await bot.api.copyMessage(imp.halot, chatid, mid, {
                 caption: cap + `\n\nfrom = <code>${username}</code>\nid = <code>${chatid}</code>&mid=${mid}`,
                 parse_mode: 'HTML'
             })
         }
     } catch (err) {
         if (!err.message) {
-            await bot.telegram.sendMessage(imp.shemdoe, err.description)
+            await bot.api.sendMessage(imp.shemdoe, err.description)
             console.log(err)
         } else {
-            await bot.telegram.sendMessage(imp.shemdoe, err.message)
+            await bot.api.sendMessage(imp.shemdoe, err.message)
             console.log(err)
         }
     }
 })
 
 
-bot.launch()
-    .then((console.log('Bot is running')))
-    .catch((err) => {
-        console.log('Bot is not running')
-        bot.telegram.sendMessage(imp.shemdoe, err.message)
-    })
+// Stopping the bot when the Node.js process is about to be terminated
+process.once("SIGINT", () => bot.stop());
+process.once("SIGTERM", () => bot.stop());
 
-
-process.once('SIGINT', () => bot.stop('SIGINT'))
-process.once('SIGTERM', () => bot.stop('SIGTERM'))
+bot.start().catch(e => {
+    if (e.message.includes('409: Conflict: terminated by other getUpdates')) {
+        bot.stop('new update')
+    }
+})
 
 process.on('unhandledRejection', (reason, promise) => {
-    bot.telegram.sendMessage(imp.shemdoe, reason + ' It is an unhandled rejection...')
+    bot.api.sendMessage(imp.shemdoe, reason + ' It is an unhandled rejection...')
     console.log(reason)
     //on production here process will change from crash to start cools
 })
@@ -313,7 +329,7 @@ process.on('unhandledRejection', (reason, promise) => {
 //caught any exception
 process.on('uncaughtException', (err) => {
     console.log(err)
-    bot.telegram.sendMessage(741815228, err.message + ' - It is uncaught exception.')
+    bot.api.sendMessage(741815228, err.message + ' - It is uncaught exception.')
         .catch((err) => {
             console.log(err.message + ' while sending you')
             process.exit()

@@ -2,40 +2,39 @@ const mkekaMega = require('../database/mkeka-mega')
 const waombajiModel = require('../database/waombaji')
 
 const sendMkeka3 = async (ctx, delay, bot, imp) => {
-    let defaultReplyMkp = {
-        keyboard: [
-            [
-                { text: "💰 BET OF THE DAY (🔥)" }
-            ]
-        ],
-        is_persistent: true,
-        resize_keyboard: true
-    }
     try {
-        await ctx.sendChatAction('typing')
+        let bwTZ = `http://bet-link.top/betway-tz/register`
+        let gsb = 'http://bet-link.top/gsb-tz/register'
+        let pm = `https://pmaff.com/?serial=61291818&creative_id=1788`
+        let ke = `http://bet-link.top/22bet/register`
+        let tzWinner = `http://bet-link.top/betwinner/register`
+        let ug = `https://bet-link.top/gsb-ug/register`
+        let prm = `http://bet-link.top/premierbet/register`
+        let zm = `https://track.africabetpartners.com/visit/?bta=35468&nci=5976&utm_campaign=zambia`
+        let zm_short = `https://is.gd/register_gsb_zambia`
+
+        await ctx.replyWithChatAction('typing')
         await delay(1000)
         let nairobi = new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Nairobi' })
-        let keka = await mkekaMega.find({ date: nairobi })
-        await waombajiModel.findOneAndUpdate({ pid: '22bet' }, { $inc: { mk3: 1 } })
+        let keka = await mkekaMega.aggregate(([
+            { $match: { date: nairobi } },
+            { $sample: { size: 15 } }
+        ]))
         let txt = `<b><u>🔥 Bet of the Day [ ${nairobi} ]</u></b>\n\n\n`
         let odds = 1
         if (keka.length > 0) {
             for (let m of keka) {
-                txt = txt + `<u><i>${m.date},  ${m.time}</i></u>\n⚽️ ${m.match}\n<b>✅ ${m.bet}</b>\n<i>💰 Odds: ${m.odds}</i> \n\n\n`
+                txt = txt + `<u>${m.time} | ${m.league}</u>\n⚽️ <b><a href="${ke}">${m.match}</a></b>\n<b>✅ ${m.bet}</b>  @${m.odds} \n\n•••\n\n`
                 odds = (odds * m.odds).toFixed(2)
             }
 
-            let btw = 'http://bet-link.top/betway/register'
-            let ke = `http://bet-link.top/22bet/register`
-            let ug = `http://bet-link.top/22bet/register`
+            let finaText = txt + `<b>🔥 Total Odds: ${Number(odds).toLocaleString('en-US')}</b>\n\n•••••\n\n<blockquote>Betslip prepared at <b>22Bet</b> with 200% bonus on your first deposit</blockquote>\n\n<b>Register with 22Bet \n\n👤 (Kenya 🇰🇪)\n<a href="${ke}">https://22bet.co.ke/register\nhttps://22bet.co.ke/register</a>\n\n👤 (Uganda 🇺🇬)\n<a href="${ug}">https://www.gsb.ug/register</a>\n\n👤 (Tanzania 🇹🇿)\n<a href="${bwTZ}">https://betway.co.tz/register</a>\n\n\n•••</b>`
 
-            let finaText = txt + `<b>🔥 Total Odds: ${odds}</b>\n\n▬▬▬▬▬▬▬▬▬▬▬▬\n\nThese bet options are available at <b>22bet</b> with a 200% bonus on your 1st deposit\n\n<b>✓ You Can Register Below \n\n👤 (Kenya 🇰🇪)\n<a href="${ke}">https://22bet.co.ke/register\nhttps://22bet.co.ke/register</a>\n\n👤 (Uganda 🇺🇬)\n<a href="${ug}">https://22bet.co.ug/register</a>\n\n👤 (Tanzania 🇹🇿)\n<a href="${btw}">https://22bet.co.tz/register</a>\n\n\n\n#WinWithEditha</b>`
-
-            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: defaultReplyMkp })
+            await ctx.reply(finaText, { parse_mode: 'HTML', disable_web_page_preview: true })
         } else {
-            await ctx.sendChatAction('typing')
+            await ctx.replyWithChatAction('typing')
             setTimeout(() => {
-                ctx.reply('No available bets at this time... please try again later')
+                ctx.reply(`Ooops! Today's luck is not yet prepared. Please come back later`)
                     .catch(e => console.log(e.message))
             }, 1000)
         }

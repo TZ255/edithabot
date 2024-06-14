@@ -15,7 +15,7 @@ const convos = (imp, kenyanDb, ugandanDb, bot) => {
                             if (index == all_users.length - 1) {
                                 ctx.reply('Nimemaliza convo na Kenyans')
                             }
-                            bot.telegram.copyMessage(u.chatid, imp.mikekaDB, msg_id)
+                            bot.api.copyMessage(u.chatid, imp.mikekaDB, msg_id)
                                 .then(() => console.log('convo sent to ' + u.chatid))
                                 .catch((err) => {
                                     if (err.message.includes('blocked') || err.message.includes('initiate')) {
@@ -48,7 +48,7 @@ const convos = (imp, kenyanDb, ugandanDb, bot) => {
                             if (index == all_users.length - 1) {
                                 ctx.reply('Nimemaliza convo na ugandans')
                             }
-                            bot.telegram.copyMessage(u.chatid, imp.mikekaDB, msg_id)
+                            bot.api.copyMessage(u.chatid, imp.mikekaDB, msg_id)
                                 .then(() => console.log('convo sent to ' + u.chatid))
                                 .catch((err) => {
                                     if (err.message.includes('blocked') || err.message.includes('initiate')) {
