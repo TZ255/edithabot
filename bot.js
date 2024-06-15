@@ -188,6 +188,10 @@ bot.command('p_videos', async ctx => {
 bot.callbackQuery(['money', 'pussy'], async ctx=> {
     try {
         await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
+        let msgid = ctx.callbackQuery.message?.message_id
+        setTimeout(() => {
+            ctx.api.deleteMessage(ctx.chat.id, msgid).catch(e => console.log(e.message))
+        }, 2000);
     } catch (error) {
         await ctx.reply(error.message)
         console.log(error.message, error)
