@@ -1,8 +1,11 @@
-const startFn = (bot, ugandanDb, kenyanDb, imp) => {
+const mkekaFn = require('./mkeka')
+
+const startFn = (bot, ugandanDb, kenyanDb, imp, delay, InlineKeyboard) => {
     bot.command('start', async ctx => {
         let defaultReplyMkp = {
             keyboard: [
-                [{ text: "💰 BET OF THE DAY (🔥)" }]
+                [{ text: "💰 MONEY" }, { text: "🍑 PU$$Y" }],
+                [{ text: "🎯 BET OF THE DAY (🔥)" }]
             ],
             is_persistent: true,
             resize_keyboard: true
@@ -17,7 +20,7 @@ const startFn = (bot, ugandanDb, kenyanDb, imp) => {
                         await ugandanDb.create({ chatid: ctx.chat.id, username: ctx.chat.first_name, blocked: false })
                         console.log('ugandan user created')
                     }
-                    await bot.api.copyMessage(ctx.chat.id, imp.pzone, 7569, {reply_markup: defaultReplyMkp})
+                    await bot.api.copyMessage(ctx.chat.id, imp.pzone, 7569, { reply_markup: defaultReplyMkp })
                 }
 
                 else if (payLoad == 'malaya_kenya') {
@@ -26,11 +29,19 @@ const startFn = (bot, ugandanDb, kenyanDb, imp) => {
                         await kenyanDb.create({ chatid: ctx.chat.id, username: ctx.chat.first_name, blocked: false })
                         console.log('kenyan user created')
                     }
-                    await bot.api.copyMessage(ctx.chat.id, imp.pzone, 7589, {reply_markup: defaultReplyMkp})
+                    await bot.api.copyMessage(ctx.chat.id, imp.pzone, 7589, { reply_markup: defaultReplyMkp })
+                } else if (['pussy', 'money'].includes(payLoad)) {
+                    let url = `https://getafilenow.com/1584699`
+                    let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
+                    await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
+                        reply_markup: { inline_keyboard }
+                    })
                 }
             } else {
-                await ctx.reply(`Welcome ${ctx.chat.first_name}\n\nTo get the best bet of the day click this command /betslip`, {
-                    reply_markup: defaultReplyMkp
+                let url = `https://getafilenow.com/1584699`
+                let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
+                await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
+                    reply_markup: { inline_keyboard }
                 })
             }
         } catch (err) {

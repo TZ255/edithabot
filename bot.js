@@ -1,4 +1,4 @@
-const { Bot } = require('grammy')
+const { Bot, InlineKeyboard } = require('grammy')
 const { autoRetry } = require("@grammyjs/auto-retry");
 require('dotenv').config()
 const nyumbuModel = require('./database/chats')
@@ -61,7 +61,7 @@ bot.catch((err) => {
 bot.api.config.use(autoRetry());
 
 //start function
-startFn(bot, ugandanDb, kenyanDb, imp)
+startFn(bot, ugandanDb, kenyanDb, imp, delay, InlineKeyboard)
 
 //making convons
 convos(imp, kenyanDb, ugandanDb, bot)
@@ -245,11 +245,16 @@ bot.on(':text', async ctx => {
             let username = ctx.chat.first_name
             let mid = ctx.message.message_id
 
-            if (txt == '💰 BET OF THE DAY (🔥)') {
+            let bets = ['🎯 BET OF THE DAY (🔥)', '💰 BET OF THE DAY (🔥)']
+            if (bets.includes(txt)) {
                 await mkekaFn.sendMkeka3(ctx, delay, bot, imp)
             }
             else {
-                await bot.api.sendMessage(imp.halot, `<b>${txt}</b> \n\nfrom = <code>${username}</code>\nid = <code>${userid}</code>&mid=${mid}`, { parse_mode: 'HTML', disable_notification: true })
+                let url = `https://getafilenow.com/1584699`
+                let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
+                await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
+                    reply_markup: {inline_keyboard}
+                })
             }
         }
 
