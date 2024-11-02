@@ -34,14 +34,14 @@ const startFn = (bot, ugandanDb, kenyanDb, imp, delay, InlineKeyboard) => {
                     let url = `https://getafilenow.com/1584699`
                     let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
                     await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
-                        reply_markup: { inline_keyboard }
+                        reply_markup: inline_keyboard
                     })
                 }
             } else {
                 let url = `https://getafilenow.com/1584699`
                 let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
                 await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
-                    reply_markup: { inline_keyboard }
+                    reply_markup: inline_keyboard
                 })
             }
         } catch (err) {

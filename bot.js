@@ -253,7 +253,7 @@ bot.on(':text', async ctx => {
                 let url = `https://getafilenow.com/1584699`
                 let inline_keyboard = new InlineKeyboard().url('🔞 UNLOCK NOW', url)
                 await ctx.api.copyMessage(ctx.chat.id, imp.matangazoDB, 184, {
-                    reply_markup: {inline_keyboard}
+                    reply_markup: inline_keyboard
                 })
             }
         }
